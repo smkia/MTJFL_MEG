@@ -9,7 +9,13 @@ function [W,A,Y_table,acc] = OOB (data,target,bootstrap_num,opts,parallel)
 %           vector should contain 1 for positive and -1 for negative
 %           classes.
 %           bootstrap_num: number of bootstraps.
-%           opts: parameters of the model.
+%           opts: parameters of the model:
+%               loss: decides the loss function between 'logistic' and 'least'
+%                   standing for logistic loss and least squares loss,
+%                   respectively.
+%               penalization: decides the penalization term between 'L1'
+%               and 'L2' standing for l1 and l2 penalization terms,
+%               respectively.
 %           parellel: 0 or 1. if one the code will run in parallel.
 % Outputs:
 %           W: is a 1*bootstrap_num cell that contains the weight vector of
