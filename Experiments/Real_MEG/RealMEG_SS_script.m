@@ -11,13 +11,14 @@ addpath(genpath('Path to MALSAR toolbox.'));
 addpath('Path to Functions folder.');
 datapath = 'Specify the real MEG data directory.';
 savePath = 'Specify the save directory.';
-
-lambda = [0.001 0.1 1 5 10 25 50 100 200 300];
+%lambda = [0.001 0.1 1 5 10 25 50 100 200 300]; % for least squares loss
+lambda = [0.001 0.005, 0.01, 0.05, 0.1, 0.5, 1, 10]; % for logistic loss
 bootstrap_num = 50;
 subjects_train = 1:16;
 timeInterval = 76:325; % -200ms to 800ms
 
 penalization = 'L1'; % Use 'L1' for l_1 regularization and 'L2' for l_2 regularization
+loss = 'logistic'; % Use 'logistic' for logistic regression and 'least' for least squares loss
 
 for subj = subjects_train
     filename = sprintf(datapath,subjects_train(subj));
@@ -35,8 +36,9 @@ for subj = subjects_train
     
     % Training
     opts = [];
-    opts.tol = 10e-4;
     opts.n = n;
+    opts.penalization = penalization;
+    opts.loss = loss;
     if strcmp(penalization,'L1')
         opts.alpha = 1;
     elseif strcmp(penalization,'L2')
@@ -53,5 +55,5 @@ for subj = subjects_train
         disp(strcat('Subject:',num2str(subj),',Lambda:',num2str(lambda(l)), ',Performance:',num2str(performance(subj,l).performance),...
             ',Interpretable:',num2str(interpretable(subj,l).interpretability),',Zeta:',num2str(zeta(subj,l))));
     end
-    save(strcat(savePath,'ST_SS_Real_',penalization,'_Results.mat'),'ACC','performance','zeta','interpretable','lambda','A');
+    save(strcat(savePath,'ST_SS_Real_', loss, penalization,'_Results.mat'),'ACC','performance','zeta','interpretable','lambda','A');
 end

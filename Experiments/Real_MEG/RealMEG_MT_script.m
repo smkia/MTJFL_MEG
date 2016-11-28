@@ -32,9 +32,10 @@ for subj = subjects_train
 end
 
 opts = [];
-opts.tol = 10e-4;
 opts.n = n;
 opts.penalization = 'L21';
+opts.loss = 'logistic';
+
 for l = 1 : length(lambda)
     opts.lambda = lambda(l);
     [W,Y_table,acc] = OOB_MTL(d,target,bootstrap_num,opts);
@@ -50,5 +51,5 @@ for l = 1 : length(lambda)
         disp(strcat('Subject:',num2str(subj),',Lambda:',num2str(lambda(l)), ',Performance:',num2str(performance(subj,l).performance),...
         ',Interpretable:',num2str(interpretable(subj,l).interpretability),',Plausible:',num2str(zeta(subj,l))));
     end
-    save(strcat(savePath,'MT_L21_Results.mat'),'ACC','performance','zeta','interpretable','lambda','A');
+    save(strcat(savePath,'MT_Real_',opts.loss,opts.penalization,'_Results.mat'),'ACC','performance','zeta','interpretable','lambda','A');
 end

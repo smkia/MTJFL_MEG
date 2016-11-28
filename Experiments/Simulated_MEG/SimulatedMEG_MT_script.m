@@ -1,6 +1,6 @@
 % This script is written in order to replicate the simulation results for MT-L21
-% approach in paper entitled "Group-Level Spatio-Temporal Pattern Recovery in MEG 
-% Decoding using Multi-Task Joint Feature Learning". 
+% approach in paper entitled "Group-Level Spatio-Temporal Pattern Recovery in MEG
+% Decoding using Multi-Task Joint Feature Learning".
 
 % November 2016, Seyed Mostafa Kia (m.kia83@gmail.com)
 
@@ -9,11 +9,12 @@ addpath(genpath('Path to MALSAR toolbox.'));
 addpath(genpath('Path to Fieldtrip toolbox.'))
 addpath('Path to Functions folder.');
 savePath = 'Specify the save directory.';
-lambda = [0.001 0.1 1 5 10 25 50 100 200 300];
+%lambda = [0.001 0.1 1 5 10 25 50 100 200 300]; % for least squares loss
+lambda = [0.001 0.005, 0.01, 0.05, 0.1, 0.5, 1, 10]; % for logistic loss
 bootstrap_num = 50;
 iterNum = 10;
 subNum = 7;
-effectTime = [45,75]; 
+effectTime = [45,75];
 freq = [3,5];
 sourcePos = [-4.7 -3.7 5.3];
 sourceMom = [1,0,0; 0 1 0; 0 0 1; 1 1 0; 0 1 1; 1 0 1; 1 1 1];
@@ -61,7 +62,8 @@ for iter = 1 : iterNum
     opts = [];
     opts.tol = 10e-4;
     opts.n = n;
-    opts.loss = 'L21';
+    opts.penalization = 'L21';
+    opts.loss = 'logistic'; % or 'least' for least squares loss
     for l = 1 : length(lambda)
         opts.lambda = lambda(l);
         [W,Y_table,acc] = OOB_MTL(X,Y,bootstrap_num,opts);
@@ -78,6 +80,6 @@ for iter = 1 : iterNum
                 ',Interpretable:',num2str(interpretable(iter,subj,l).interpretability),',Plausible:',num2str(zeta(iter,subj,l))));
         end
     end
-    save(strcat(savePath,'SimulatedMEG_MT_',opts.loss,'_Results.mat'),'ACC','performance','zeta','interpretable','lambda'...
-                ,'GT','A');
+    save(strcat(savePath,'SimulatedMEG_MT_',opts.loss,opts.penalization,'_Results.mat'),'ACC','performance','zeta','interpretable','lambda'...
+        ,'GT','A');
 end

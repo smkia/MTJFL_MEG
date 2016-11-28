@@ -1,7 +1,7 @@
 % This script is written in order to replicate the experimental results on
 % real MEG data for Pooling-L1 ans Pooling-L2 approaches in paper entitled "Group-Level
 % Spatio-Temporal Pattern Recovery in MEG Decoding using Multi-Task Joint
-% Feature Learning". Please change "penalization" in line 20 to switch between 
+% Feature Learning". Please change "penalization" in line 21 to switch between
 % Pooling-L1 and Pooling-L2.
 
 % November 2016, Seyed Mostafa Kia (m.kia83@gmail.com)
@@ -13,11 +13,13 @@ datapath = 'Specify the real MEG data directory.';
 savePath = 'Specify the save directory.';
 
 subjects_train = 1:16;
-lambda = [0.001 0.1 1 5 10 25 50 100 200 300];
+%lambda = [0.001 0.1 1 5 10 25 50 100 200 300]; % for least squares loss
+lambda = [0.001 0.005, 0.01, 0.05, 0.1, 0.5, 1, 10]; % for logistic loss
 timeInterval = 76:325; % -200ms to 800ms
 bootstrap_num = 50;
 
 penalization = 'L1'; % Use 'L1' for l_1 regularization and 'L2' for l_2 regularization
+loss = 'logistic'; % Use 'logistic' for logistic regression and 'least' for least squares loss
 
 d = [];
 target = [];
@@ -39,8 +41,9 @@ d = mapstd(d')';
 A = mean(d(target==1,:)) - mean(d(target==-1,:));
 
 opts = [];
-opts.tol = 10e-4;
 opts.n = n;
+opts.penalization = penalization;
+opts.loss = loss;
 if strcmp(penalization,'L1')
     opts.alpha = 1;
 elseif strcmp(penalization,'L2')
@@ -56,5 +59,5 @@ for l = 1 : length(lambda)
     zeta(l) = zeta_phi(performance(l).performance,interpretable(l).interpretability,1,1,0.6);
     disp(strcat('Lambda:',num2str(lambda(l)), ',Performance:',num2str(performance(subj,l).performance),...
         ',Interpretable:',num2str(interpretable(subj,l).interpretability),',Zeta:',num2str(zeta(subj,l))));
-    save(strcat(savePath,'ST_Pooling_',penalization,'_Results.mat'),'ACC','performance','zeta','interpretable','lambda','A');
+    save(strcat(savePath,'ST_Pooling_', loss, penalization,'_Results.mat'),'ACC','performance','zeta','interpretable','lambda','A');
 end

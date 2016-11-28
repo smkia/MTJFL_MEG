@@ -1,7 +1,7 @@
 % This script is written in order to replicate the simulation results for Pooling-L1
-% and Pooling-L2 approaches in paper entitled "Group-Level Spatio-Temporal Pattern Recovery in MEG 
+% and Pooling-L2 approaches in paper entitled "Group-Level Spatio-Temporal Pattern Recovery in MEG
 % Decoding using Multi-Task Joint Feature Learning". Please change
-% "penalization" in line 33 to switch between Pooling-L1 and Pooling-L2.
+% "penalization" in line 34 to switch between Pooling-L1 and Pooling-L2.
 
 % November 2016, Seyed Mostafa Kia (m.kia83@gmail.com)
 
@@ -10,7 +10,8 @@ addpath(genpath('Path to MALSAR toolbox.'));
 addpath(genpath('Path to Fieldtrip toolbox.'))
 addpath('Path to Functions folder.');
 savePath = 'Specify the save directory.';
-lambda = [0.001 0.1 1 5 10 25 50 100 200 300];
+%lambda = [0.001 0.1 1 5 10 25 50 100 200 300]; % for least squares loss
+lambda = [0.001 0.005, 0.01, 0.05, 0.1, 0.5, 1, 10]; % for logistic loss
 bootstrap_num = 50;
 iterNum = 10;
 subNum = 7;
@@ -21,7 +22,7 @@ sourceMom = [1,0,0; 0 1 0; 0 0 1; 1 1 0; 0 1 1; 1 0 1; 1 1 1];
 
 cfgSimulation.sourcePos = sourcePos;
 cfgSimulation.samplingRate = 300;
-cfgSimulation.trialNumPerClass = 250; 
+cfgSimulation.trialNumPerClass = 250;
 cfgSimulation.trialLength = 100;
 cfgSimulation.channelType = 'MEGMAG';
 cfgSimulation.jitter = 1;
@@ -31,6 +32,7 @@ cfgSimulation.effectTime = effectTime;
 trialNum = 2 * cfgSimulation.trialNumPerClass;
 
 penalization = 'L1'; % Use 'L1' for l_1 regularization and 'L2' for l_2 regularization
+loss = 'logistic'; % Use 'logistic' for logistic regression and 'least' for least squares loss
 
 for iter = 1 : iterNum
     % Preparing data
@@ -66,15 +68,15 @@ for iter = 1 : iterNum
     
     % Training
     opts = [];
-    opts.tol = 10e-4;
     opts.n = n;
-    
-    
+    opts.penalization = penalization;
+    opts.loss = loss;
     if strcmp(penalization,'L1')
         opts.alpha = 1;
     elseif strcmp(penalization,'L2')
         opts.alpha = 0;
     end
+    
     for l = 1 : length(lambda)
         opts.lambda = lambda(l);
         [W,~,Y_table,acc] = OOB(d,target,bootstrap_num,opts,0);
@@ -84,6 +86,6 @@ for iter = 1 : iterNum
         zeta(iter,l) = zeta_phi(performance(iter,l).performance,interpretable(iter,l).interpretability,1,1,0.55);
         disp(strcat('Iter:',num2str(iter),',Lambda:',num2str(lambda(l)), ',Performance:',num2str(performance(iter,l).performance),...
             ',Interpretable:',num2str(interpretable(iter,l).interpretability),',Zeta:',num2str(zeta(iter,l))));
-        save(strcat(savePath,'ST_Pooling_Simulation_',penalization,'_Results.mat'),'ACC','performance','zeta','interpretable','lambda','A');
+        save(strcat(savePath,'ST_Pooling_Simulation_', loss, penalization,'_Results.mat'),'ACC','performance','zeta','interpretable','lambda','A');
     end
 end

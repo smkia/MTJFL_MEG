@@ -1,6 +1,6 @@
 function [W,Y_table,acc] = OOB_MTL (data,target,bootstrap_num,opts)
 % This functions performs OOB procedure on a given dataset and model and
-% returns weight of OOB models, their predictions, and accuracy. See 
+% returns weight of OOB models, their predictions, and accuracy. See
 % https://arxiv.org/abs/1603.08704 for more information.
 % Inputs:
 %           data: input data organized as n*p samples where n is the number
@@ -42,13 +42,24 @@ for f = 1 : bootstrap_num
         X_te{task} = data{task}(setdiff(1:n(task),randInd{task}(f,1:n(task))),:);
         Y_te{task} = target{task}(setdiff(1:n(task),randInd{task}(f,1:n(task))));
     end
-    if strcmp(opts.loss,'L21')
-        [W{f}] = Least_L21(X_tr,Y_tr,opts.lambda,opts);
-    elseif strcmp(opts.loss,'L1')
-        [W{f}] = Least_Lasso(X_tr,Y_tr,opts.lambda,opts);
-    elseif strcmp(opts.loss,'L2')
-        opts.rho_L2 = opts.lambda;
-        [W{f}] = Least_Lasso(X_tr,Y_tr,0,opts);
+    if strcmp(opts.loss,'least')
+        if strcmp(opts.penalization,'L21')
+            [W{f}] = Least_L21(X_tr,Y_tr,opts.lambda,opts);
+        elseif strcmp(opts.penalization,'L1')
+            [W{f}] = Least_Lasso(X_tr,Y_tr,opts.lambda,opts);
+        elseif strcmp(opts.penalization,'L2')
+            opts.rho_L2 = opts.lambda;
+            [W{f}] = Least_Lasso(X_tr,Y_tr,0,opts);
+        end
+    elseif strcmp(opts.loss,'logistic')
+        if strcmp(opts.penalization,'L21')
+            [W{f}] = Logistic_L21(X_tr,Y_tr,opts.lambda,opts);
+        elseif strcmp(opts.penalization,'L1')
+            [W{f}] = Logistic_Lasso(X_tr,Y_tr,opts.lambda,opts);
+        elseif strcmp(opts.penalization,'L2')
+            opts.rho_L2 = opts.lambda;
+            [W{f}] = Logistic_Lasso(X_tr,Y_tr,0,opts);
+        end
     end
     for task = 1 : length(n)
         y_pred{f,task}= X_te{task}*W{f}(:,task);
